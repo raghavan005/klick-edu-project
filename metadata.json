@@ -1,0 +1,6 @@
+{
+  "name": "ERP Lead Management Module",
+  "description": "A comprehensive, high-fidelity lead management module for ERP systems supporting dynamic search, multi-filter criteria, notes management, and full pagination.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
