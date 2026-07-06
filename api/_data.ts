@@ -1,8 +1,27 @@
-// Shared in-memory data store for all Vercel serverless functions.
-// Note: data resets on cold starts — this is intentional for a demo deployment.
-import { Lead, LeadStatus, Note } from "../src/types";
+export type LeadStatus = "New" | "Contacted" | "Qualified" | "Proposal" | "Won" | "Lost";
 
-export let leads: Lead[] = [
+export interface Note {
+  id: string;
+  content: string;
+  createdDate: string;
+  createdBy: string;
+}
+
+export interface Lead {
+  id: string;
+  name: string;
+  mobile: string;
+  email: string;
+  status: LeadStatus;
+  assignedEmployee: string;
+  createdDate: string;
+  address: string;
+  courseInterested: string;
+  leadSource: string;
+  notes: Note[];
+}
+
+export const leads: Lead[] = [
   {
     id: "lead_1", name: "Arjun Mehta", mobile: "9876543210",
     email: "arjun.mehta@example.com", status: "New", assignedEmployee: "Aarti Desai",
@@ -174,5 +193,3 @@ export let leads: Lead[] = [
     notes: [{ id: "note_25_1", content: "Syllabus reviewed. Full tuition fee paid upfront.", createdDate: "2026-07-05T11:00:00Z", createdBy: "Eshaan Verma" }]
   }
 ];
-
-export type { LeadStatus, Note };

@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { leads } from "../../../_data";
-import { Note } from "../../../../src/types";
+import { leads, type Note } from "../../../_data";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });

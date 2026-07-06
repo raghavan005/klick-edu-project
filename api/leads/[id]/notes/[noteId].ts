@@ -10,17 +10,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const noteIndex = leads[leadIndex].notes.findIndex(n => n.id === noteId);
   if (noteIndex === -1) return res.status(404).json({ error: "Note not found" });
 
-  // ── PUT /api/leads/:id/notes/:noteId ────────────────────────────────────────
   if (req.method === "PUT") {
     const { content } = req.body;
     if (!content) return res.status(400).json({ error: "Content is required" });
-
-    leads[leadIndex].notes[noteIndex].content    = content;
+    leads[leadIndex].notes[noteIndex].content     = content;
     leads[leadIndex].notes[noteIndex].createdDate = new Date().toISOString();
     return res.json(leads[leadIndex]);
   }
 
-  // ── DELETE /api/leads/:id/notes/:noteId ─────────────────────────────────────
   if (req.method === "DELETE") {
     leads[leadIndex].notes.splice(noteIndex, 1);
     return res.json(leads[leadIndex]);

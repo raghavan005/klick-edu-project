@@ -1,13 +1,7 @@
 {
   "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "framework": null,
   "rewrites": [
-    { "source": "/api/leads/stats",                    "destination": "/api/leads/stats" },
-    { "source": "/api/leads/:id/notes/:noteId",        "destination": "/api/leads/[id]/notes/[noteId]" },
-    { "source": "/api/leads/:id/notes",                "destination": "/api/leads/[id]/notes/index" },
-    { "source": "/api/leads/:id",                      "destination": "/api/leads/[id]" },
-    { "source": "/api/leads",                          "destination": "/api/leads/index" },
-    { "source": "/((?!api/).*)",                       "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

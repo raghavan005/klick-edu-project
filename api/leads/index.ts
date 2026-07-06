@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { leads } from "../_data";
-import { LeadStatus } from "../../src/types";
+import { leads, type LeadStatus } from "../_data";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -21,7 +20,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     filtered = filtered.filter(l => l.status === (status as LeadStatus));
   }
   if (assignedEmployee && assignedEmployee !== "All") {
-    filtered = filtered.filter(l => l.assignedEmployee === assignedEmployee);
+    filtered = filtered.filter(l => l.assignedEmployee === String(assignedEmployee));
   }
   if (startDate) filtered = filtered.filter(l => l.createdDate >= String(startDate));
   if (endDate)   filtered = filtered.filter(l => l.createdDate <= String(endDate));
@@ -36,7 +35,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const parsedLimit = parseInt(String(limit)) || 10;
   const totalPages  = Math.ceil(totalCount / parsedLimit) || 1;
   const currentPage = Math.max(1, Math.min(parsedPage, totalPages));
-  const start = (currentPage - 1) * parsedLimit;
+  const start       = (currentPage - 1) * parsedLimit;
 
   res.json({
     leads: filtered.slice(start, start + parsedLimit),
