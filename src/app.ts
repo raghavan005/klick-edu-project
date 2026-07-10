@@ -79,11 +79,12 @@ function handleError(res: express.Response, err: unknown, context: string) {
   if (err instanceof Error) {
     const msg = err.message.toLowerCase();
     if (msg.includes("not found"))                    return res.status(404).json({ error: err.message });
-    if (msg.includes("already exists") || msg.includes("unique")) return res.status(409).json({ error: err.message });
+    if (msg.includes("already exists") || err.message.includes("Unique constraint failed")) return res.status(409).json({ error: err.message });
     if (msg.includes("admin access"))                 return res.status(403).json({ error: err.message });
   }
   console.error(`[${context}]`, err);
-  return res.status(500).json({ error: "Internal server error" });
+  const errMsg = err instanceof Error ? err.message : String(err);
+  return res.status(500).json({ error: "Internal server error", details: errMsg });
 }
 
 // ─── App Factory ──────────────────────────────────────────────────────────────
