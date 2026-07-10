@@ -1,0 +1,231 @@
+// ─── Prisma Schema ────────────────────────────────────────────────────────────
+// CRM Lead Management
+// Database: Supabase PostgreSQL
+// ──────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── Employee / User roles ────────────────────────────────────────────────────
+
+enum EmployeeRole {
+  SALES_REP
+  TEAM_LEAD
+  MANAGER
+  ADMIN
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+// ─── Lead pipeline enums ──────────────────────────────────────────────────────
+
+enum LeadStatus {
+  New
+  Contacted
+  Qualified
+  Proposal
+  Won
+  Lost
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+  Urgent
+}
+
+// ─── Lead source channels ─────────────────────────────────────────────────────
+
+enum LeadSource {
+  Google_Ads
+  LinkedIn_Referral
+  Organic_Search
+  Facebook_Campaign
+  Direct_Visit
+  Referral
+  Cold_Call
+  Email_Campaign
+  Other
+}
+
+// ─── Study preference ─────────────────────────────────────────────────────────
+// Matches constants: Online | Offline | Hybrid | Self_Paced
+
+enum StudyPreference {
+  Online
+  Offline
+  Hybrid
+  Self_Paced
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MODELS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ─── Employee ─────────────────────────────────────────────────────────────────
+// Represents a CRM team member who can own and work leads.
+
+model Employee {
+  id        String       @id @default(cuid())
+  name      String
+  email     String       @unique
+  role      EmployeeRole @default(SALES_REP)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  leads     Lead[]
+  user      User?        // inverse of User.employee
+
+  @@map("employees")
+}
+
+// ─── Auth User ────────────────────────────────────────────────────────────────
+// Login credentials and RBAC role. Linked 1-to-1 with an Employee when role = STAFF.
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(STAFF)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Optional 1-to-1 link to an Employee record (STAFF users only)
+  employeeId   String?   @unique
+  employee     Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@index([isActive])
+  @@map("users")
+}
+
+// ─── Lead ─────────────────────────────────────────────────────────────────────
+// Core entity. Represents a prospective customer in the sales pipeline.
+
+model Lead {
+  id                 String          @id @default(cuid())
+
+  // ── Contact Information ────────────────────────────────────────────────────
+  fullName           String
+  email              String
+  phone              String
+
+  // ── Location ──────────────────────────────────────────────────────────────
+  country            String          @default("India")
+  state              String?
+  district           String?
+  city               String?
+
+  // ── Lead Classification ────────────────────────────────────────────────────
+  leadSource         LeadSource      @default(Google_Ads)
+  courseInterest     String
+  studyPreference    StudyPreference @default(Online)
+  preferredCountry   String?         // populated when studyPreference = Hybrid/Online
+
+  // ── Pipeline State ────────────────────────────────────────────────────────
+  // stage and subStage are free-form strings driven by src/lib/stageConfig.ts
+  // This avoids frequent migrations when business adds/renames stages.
+  stage              String          @default("New")
+  subStage           String          @default("Not_Contacted")
+  priority           Priority        @default(Medium)
+  status             LeadStatus      @default(New)
+
+  // ── Follow-up Tracking ────────────────────────────────────────────────────
+  nextFollowUpDate   DateTime?
+  lastContactedDate  DateTime?
+
+  // ── Additional ────────────────────────────────────────────────────────────
+  remarks            String?         @db.Text
+
+  // ── Timestamps ────────────────────────────────────────────────────────────
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  assignedEmployeeId String?
+  assignedEmployee   Employee?       @relation(fields: [assignedEmployeeId], references: [id], onDelete: SetNull)
+  notes              LeadNote[]
+  activities         LeadActivity[]
+
+  // ── Indexes ───────────────────────────────────────────────────────────────
+  // Single-column — for individual filter queries
+  @@index([status])
+  @@index([priority])
+  @@index([stage])
+  @@index([leadSource])
+  @@index([assignedEmployeeId])
+  @@index([nextFollowUpDate])   // follow-up automation queries
+  @@index([createdAt])
+  @@index([updatedAt])
+
+  // Compound — for common filter combinations
+  @@index([status, assignedEmployeeId])           // "my leads by status"
+  @@index([status, priority])                     // pipeline prioritisation
+  @@index([nextFollowUpDate, status])             // overdue / due-today queries
+
+  @@map("leads")
+}
+
+// ─── LeadNote ─────────────────────────────────────────────────────────────────
+// Internal notes logged against a lead. Soft audit trail for conversations.
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdBy String                // display name of the author (User.name)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Compound index — most queries are "all notes for lead X, newest first"
+  @@index([leadId, createdAt(sort: Desc)])
+  @@map("lead_notes")
+}
+
+// ─── LeadActivity ─────────────────────────────────────────────────────────────
+// Immutable audit log. One row per action. Never updated, only inserted.
+// Powers the activity timeline and change history.
+
+model LeadActivity {
+  id           String   @id @default(cuid())
+
+  // Type key (e.g. "status_change", "note_added", "lead_created")
+  // Kept as string so new event types can be added without schema migration.
+  activityType String
+
+  description  String   @db.Text
+  performedBy  String               // User.name at time of action
+  createdAt    DateTime @default(now())
+
+  leadId       String
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Compound index — timeline queries always filter by leadId and sort by createdAt
+  @@index([leadId, createdAt(sort: Desc)])
+
+  // Single index — for dashboard "recent activity across all leads"
+  @@index([createdAt(sort: Desc)])
+
+  // Filter by type — for "show only status changes" views
+  @@index([activityType])
+
+  @@map("lead_activities")
+}

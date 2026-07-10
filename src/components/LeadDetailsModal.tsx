@@ -1,17 +1,26 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Calendar, Phone, Mail, MapPin, BookOpen, Share2, User, FileText, Trash2, Edit2, Check, CornerDownRight } from "lucide-react";
-import { Lead, Note } from "../types";
+import { authFetch } from "../lib/auth";
+import { LegacyLead } from "../types";
+
+// Note shape as used by this component (subset of stored note)
+interface NoteItem {
+  id: string;
+  content: string;
+  createdDate: string;
+  createdBy: string;
+}
 
 interface LeadDetailsModalProps {
-  lead: Lead;
+  lead: LegacyLead;
   onClose: () => void;
-  onUpdateLead: (updatedLead: Lead) => void;
+  onUpdateLead: (updatedLead: LegacyLead) => void;
   showToast: (message: string, type: "success" | "error" | "info") => void;
 }
 
 export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToast }: LeadDetailsModalProps) {
-  const [notes, setNotes] = useState<Note[]>(lead.notes || []);
+  const [notes, setNotes] = useState<NoteItem[]>(lead.notes || []);
   const [newNoteContent, setNewNoteContent] = useState("");
   const [createdBy, setCreatedBy] = useState("System User");
   
@@ -28,7 +37,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
     e.preventDefault();
     if (!newNoteContent.trim() || !createdBy.trim()) return;
 
-    const optimisticNote: Note = {
+    const optimisticNote: NoteItem = {
       id: `opt_${Date.now()}`,
       content: newNoteContent.trim(),
       createdDate: new Date().toISOString(),
@@ -45,7 +54,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
     showToast("Adding note...", "info");
 
     try {
-      const response = await fetch(`/api/leads/${lead.id}/notes`, {
+      const response = await authFetch(`/api/leads/${lead.id}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: optimisticNote.content, createdBy: optimisticNote.createdBy }),
@@ -78,7 +87,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
     showToast("Deleting note...", "info");
 
     try {
-      const response = await fetch(`/api/leads/${lead.id}/notes/${noteId}`, {
+      const response = await authFetch(`/api/leads/${lead.id}/notes/${noteId}`, {
         method: "DELETE",
       });
 
@@ -99,7 +108,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
   };
 
   // Start editing note
-  const startEditNote = (note: Note) => {
+  const startEditNote = (note: NoteItem) => {
     setEditingNoteId(note.id);
     setEditNoteContent(note.content);
   };
@@ -120,7 +129,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
     showToast("Saving note edits...", "info");
 
     try {
-      const response = await fetch(`/api/leads/${lead.id}/notes/${noteId}`, {
+      const response = await authFetch(`/api/leads/${lead.id}/notes/${noteId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editNoteContent.trim() }),
@@ -330,7 +339,7 @@ export default function LeadDetailsModal({ lead, onClose, onUpdateLead, showToas
                       const sortedNotes = [...notes].sort((a, b) => b.createdDate.localeCompare(a.createdDate));
                       
                       // Group notes by header
-                      const timelineGroups: { [key: string]: Note[] } = {};
+                      const timelineGroups: { [key: string]: NoteItem[] } = {};
                       sortedNotes.forEach((note) => {
                         const header = getTimelineHeader(note.createdDate);
                         if (!timelineGroups[header]) {

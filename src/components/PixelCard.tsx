@@ -1,4 +1,4 @@
-import { useEffect, useRef, ReactNode } from 'react';
+import { useEffect, useRef, useCallback, ReactNode } from 'react';
 import type React from 'react';
 
 class Pixel {
@@ -117,17 +117,30 @@ interface PixelCardProps {
   noFocus?: boolean;
   className?: string;
   children?: ReactNode;
+  /** CSS frosted-glass dressing (no SVG refraction — keeps scroll smooth). */
+  glass?: boolean;
 }
 
-export default function PixelCard({ gap = 5, speed = 35, colors = '#f8fafc,#f1f5f9,#cbd5e1', noFocus = false, className = '', children }: PixelCardProps) {
+export default function PixelCard({
+  gap = 8,
+  speed = 35,
+  colors = '#f8fafc,#f1f5f9,#cbd5e1',
+  noFocus = false,
+  className = '',
+  children,
+  glass = false,
+}: PixelCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pixelsRef = useRef<Pixel[]>([]);
   const animationRef = useRef<number | null>(null);
   const timePreviousRef = useRef(performance.now());
+  const pixelsReadyRef = useRef(false);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reducedMotion = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches).current;
 
-  const initPixels = () => {
+  const initPixels = useCallback(() => {
     if (!containerRef.current || !canvasRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -156,7 +169,21 @@ export default function PixelCard({ gap = 5, speed = 35, colors = '#f8fafc,#f1f5
       }
     }
     pixelsRef.current = pxs;
-  };
+  }, [gap, speed, colors, reducedMotion]);
+
+  const ensurePixels = useCallback(() => {
+    if (pixelsReadyRef.current || reducedMotion) return;
+    initPixels();
+    pixelsReadyRef.current = true;
+
+    if (!resizeObserverRef.current && containerRef.current) {
+      resizeObserverRef.current = new ResizeObserver(() => {
+        if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
+        resizeTimerRef.current = setTimeout(initPixels, 280);
+      });
+      resizeObserverRef.current.observe(containerRef.current);
+    }
+  }, [initPixels, reducedMotion]);
 
   const doAnimate = (fnName: 'appear' | 'disappear') => {
     animationRef.current = requestAnimationFrame(() => doAnimate(fnName));
@@ -190,10 +217,14 @@ export default function PixelCard({ gap = 5, speed = 35, colors = '#f8fafc,#f1f5
     animationRef.current = requestAnimationFrame(() => doAnimate(name));
   };
 
-  const onMouseEnter = () => handleAnimation('appear');
+  const onMouseEnter = () => {
+    ensurePixels();
+    handleAnimation('appear');
+  };
   const onMouseLeave = () => handleAnimation('disappear');
   const onFocus = (e: React.FocusEvent) => {
     if (e.currentTarget.contains(e.relatedTarget)) return;
+    ensurePixels();
     handleAnimation('appear');
   };
   const onBlur = (e: React.FocusEvent) => {
@@ -202,23 +233,21 @@ export default function PixelCard({ gap = 5, speed = 35, colors = '#f8fafc,#f1f5
   };
 
   useEffect(() => {
-    initPixels();
-    const observer = new ResizeObserver(() => {
-      initPixels();
-    });
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    if (pixelsReadyRef.current) initPixels();
+  }, [colors, initPixels]);
+
+  useEffect(() => {
     return () => {
-      observer.disconnect();
+      resizeObserverRef.current?.disconnect();
+      if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
       if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
     };
-  }, [gap, speed, colors, noFocus]);
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden isolate ${className}`}
+      className={`relative overflow-hidden isolate ${glass ? 'liquid-glass-kpi-card' : ''} ${className}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onFocus={noFocus ? undefined : onFocus}
@@ -226,7 +255,7 @@ export default function PixelCard({ gap = 5, speed = 35, colors = '#f8fafc,#f1f5
       tabIndex={noFocus ? -1 : 0}
     >
       <div className="absolute inset-0 m-auto aspect-square bg-radial from-slate-100/50 to-transparent opacity-0 transition-opacity duration-700 ease-in-out hover:opacity-100 peer-focus-within:opacity-100 -z-10 pointer-events-none" />
-      <canvas className="absolute inset-0 z-0 pointer-events-none w-full h-full block" ref={canvasRef} />
+      <canvas className="absolute inset-0 z-[1] pointer-events-none w-full h-full block" ref={canvasRef} />
       <div className="relative z-10 w-full h-full flex flex-col justify-between">
         {children}
       </div>

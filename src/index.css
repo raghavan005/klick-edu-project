@@ -230,3 +230,291 @@
     0 1px 0 var(--skeuo-card-shadow-inset) inset,
     0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
+/* ─── Command palette + liquid glass (Spotlight-style) ─────────────────────── */
+
+.command-palette-overlay {
+  background: rgba(248, 250, 252, 0.78);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.dark .command-palette-overlay {
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+}
+
+.liquid-glass-panel {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(255, 255, 255, 0.58) 50%,
+    rgba(248, 250, 252, 0.72) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 24px 48px -12px rgba(15, 23, 42, 0.18),
+    0 8px 16px -8px rgba(15, 23, 42, 0.1);
+  position: relative;
+  isolation: isolate;
+}
+
+.dark .liquid-glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 24px 48px -12px rgba(0, 0, 0, 0.45),
+    0 8px 16px -8px rgba(0, 0, 0, 0.3);
+}
+
+.liquid-glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(255, 255, 255, 0.55),
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .liquid-glass-panel::before {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(255, 255, 255, 0.18),
+    transparent 60%
+  );
+}
+
+.liquid-glass-panel > * {
+  position: relative;
+  z-index: 2;
+}
+
+.liquid-glass-panel.lg-fallback {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(248, 250, 252, 0.92) 100%
+  );
+}
+
+.dark .liquid-glass-panel.lg-fallback {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.82) 0%,
+    rgba(15, 23, 42, 0.88) 100%
+  );
+}
+
+/* ─── KPI stat cards — liquid glass + PixelCard canvas ─────────────────────── */
+
+.liquid-glass-kpi-card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px) saturate(1.35);
+  -webkit-backdrop-filter: blur(14px) saturate(1.35);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.28) 55%,
+    rgba(248, 250, 252, 0.38) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.75) inset,
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 24px -8px rgba(15, 23, 42, 0.12),
+    0 4px 8px -4px rgba(15, 23, 42, 0.08);
+}
+
+.dark .liquid-glass-kpi-card {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 55%,
+    rgba(15, 23, 42, 0.2) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 10px 24px -8px rgba(0, 0, 0, 0.35),
+    0 4px 8px -4px rgba(0, 0, 0, 0.2);
+}
+
+.liquid-glass-kpi-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 90% 60% at 50% -15%,
+    rgba(255, 255, 255, 0.45),
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .liquid-glass-kpi-card::after {
+  background: radial-gradient(
+    ellipse 90% 60% at 50% -15%,
+    rgba(255, 255, 255, 0.12),
+    transparent 65%
+  );
+}
+
+.liquid-glass-kpi-card.lg-fallback {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(248, 250, 252, 0.82) 100%
+  );
+}
+
+.dark .liquid-glass-kpi-card.lg-fallback {
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.78) 0%,
+    rgba(15, 23, 42, 0.85) 100%
+  );
+}
+
+/* Per-metric color tint (border comes from Tailwind; these add subtle glass hue) */
+.liquid-glass-kpi-card--sky {
+  background: linear-gradient(145deg, rgba(224, 242, 254, 0.65), rgba(255, 255, 255, 0.35));
+}
+.dark .liquid-glass-kpi-card--sky {
+  background: linear-gradient(145deg, rgba(12, 74, 110, 0.35), rgba(15, 23, 42, 0.25));
+}
+
+.liquid-glass-kpi-card--indigo {
+  background: linear-gradient(145deg, rgba(224, 231, 255, 0.65), rgba(255, 255, 255, 0.35));
+}
+.dark .liquid-glass-kpi-card--indigo {
+  background: linear-gradient(145deg, rgba(49, 46, 129, 0.35), rgba(15, 23, 42, 0.25));
+}
+
+.liquid-glass-kpi-card--emerald {
+  background: linear-gradient(145deg, rgba(209, 250, 229, 0.65), rgba(255, 255, 255, 0.35));
+}
+.dark .liquid-glass-kpi-card--emerald {
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.35), rgba(15, 23, 42, 0.25));
+}
+
+.liquid-glass-kpi-card--amber {
+  background: linear-gradient(145deg, rgba(254, 243, 199, 0.65), rgba(255, 255, 255, 0.35));
+}
+.dark .liquid-glass-kpi-card--amber {
+  background: linear-gradient(145deg, rgba(120, 53, 15, 0.35), rgba(15, 23, 42, 0.25));
+}
+
+.liquid-glass-kpi-card--rose {
+  background: linear-gradient(145deg, rgba(255, 228, 230, 0.65), rgba(255, 255, 255, 0.35));
+}
+.dark .liquid-glass-kpi-card--rose {
+  background: linear-gradient(145deg, rgba(136, 19, 55, 0.35), rgba(15, 23, 42, 0.25));
+}
+
+@media (min-width: 640px) {
+  .liquid-glass-kpi-card {
+    border-radius: 1rem;
+  }
+}
+
+/* ─── Analytics chart cards — liquid glass (2×2 grid) ─────────────────────── */
+
+.liquid-glass-chart-card {
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(1.35);
+  -webkit-backdrop-filter: blur(14px) saturate(1.35);
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.52) 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(241, 245, 249, 0.35) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.72) inset,
+    0 1px 0 rgba(255, 255, 255, 0.88) inset,
+    0 16px 40px -12px rgba(15, 23, 42, 0.14),
+    0 6px 14px -6px rgba(15, 23, 42, 0.1);
+}
+
+.dark .liquid-glass-chart-card {
+  border-color: rgba(255, 255, 255, 0.11);
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0.025) 50%,
+    rgba(15, 23, 42, 0.22) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 16px 40px -12px rgba(0, 0, 0, 0.38),
+    0 6px 14px -6px rgba(0, 0, 0, 0.22);
+}
+
+.liquid-glass-chart-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 85% 55% at 50% -12%,
+    rgba(255, 255, 255, 0.42),
+    transparent 62%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .liquid-glass-chart-card::after {
+  background: radial-gradient(
+    ellipse 85% 55% at 50% -12%,
+    rgba(255, 255, 255, 0.1),
+    transparent 62%
+  );
+}
+
+.liquid-glass-chart-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.liquid-glass-chart-card.lg-fallback {
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 250, 252, 0.84) 100%
+  );
+}
+
+.dark .liquid-glass-chart-card.lg-fallback {
+  background: linear-gradient(
+    150deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(15, 23, 42, 0.86) 100%
+  );
+}
+
+@media (min-width: 640px) {
+  .liquid-glass-chart-card {
+    border-radius: 1rem;
+  }
+}
