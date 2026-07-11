@@ -627,7 +627,7 @@ export default function App() {
         </motion.div>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-700 mb-6 px-2">
+        <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-700 mb-6 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <button
             onClick={() => setCurrentTab("dashboard")}
             className={`pb-3 font-bold text-sm transition-colors border-b-2 cursor-pointer ${
