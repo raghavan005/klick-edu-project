@@ -171,6 +171,52 @@ export function createApp() {
     } catch (err) { handleError(res, err, "GET /api/leads"); }
   });
 
+  // ── GET /api/leads/export ───────────────────────────────────────────────────
+  app.get("/api/leads/export", requireAuth, scopeToEmployee, async (req, res) => {
+    try {
+      const rawQuery = { ...req.query } as Record<string, string>;
+      if (rawQuery.assignedEmployee && rawQuery.assignedEmployee !== "All" && !rawQuery.assignedEmployeeId) {
+        const employees = await employeeService.getAllEmployees();
+        const match = employees.find(e => e.name.toLowerCase() === rawQuery.assignedEmployee.toLowerCase());
+        if (match) rawQuery.assignedEmployeeId = match.id;
+        delete rawQuery.assignedEmployee;
+      } else if (rawQuery.assignedEmployee === "All") {
+        delete rawQuery.assignedEmployee;
+      }
+
+      const query  = leadsQuerySchema.parse(rawQuery);
+      // Override limit to max for export (bypassing Zod's max(100) rule)
+      query.limit = 10000;
+      query.page = 1;
+
+      const result = await leadService.getLeads(query);
+      const leads = result.leads.map(toLegacy);
+
+      if (leads.length === 0) {
+        return res.status(404).send("No leads found matching criteria.");
+      }
+
+      const fields = [
+        "id", "name", "email", "mobile", "status", "stage", "subStage",
+        "priority", "leadSource", "country", "studyPreference",
+        "createdDate", "lastContacted", "nextFollowUpDate", "followUpStatus", "assignedEmployeeName"
+      ];
+      let csv = fields.join(",") + "\n";
+      for (const lead of leads) {
+        const row = fields.map(f => {
+          let val = (lead as any)[f];
+          if (val === null || val === undefined) val = "";
+          return `"${String(val).replace(/"/g, '""')}"`;
+        });
+        csv += row.join(",") + "\n";
+      }
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", 'attachment; filename="leads_export.csv"');
+      res.send(csv);
+    } catch (err) { handleError(res, err, "GET /api/leads/export"); }
+  });
+
   app.get("/api/leads/:id", requireAuth, async (req, res) => {
     try {
       const lead = await leadService.getLeadById(req.params.id);
